@@ -1,0 +1,46 @@
+name: Package
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=dev-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build package
+        run: |
+          mkdir -p dist/rtweakz
+          cp rtweakz.toc rtweakz.lua rtweakz_ui.lua dist/rtweakz/
+          sed -i "s/^## Version:.*/## Version: ${{ steps.version.outputs.version }}/" dist/rtweakz/rtweakz.toc
+          cd dist
+          zip -r "rtweakz-${{ steps.version.outputs.version }}.zip" rtweakz
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rtweakz-${{ steps.version.outputs.version }}
+          path: dist/rtweakz-*.zip
+
+      - name: Create release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/rtweakz-*.zip
+          generate_release_notes: true

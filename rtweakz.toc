@@ -1,0 +1,9 @@
+## Interface: 120100
+## Title: RTweakz
+## Notes: FPS limiter - lowers cap outside instances, raises it inside
+## Author: mteiting
+## Version: 1.0.0
+## SavedVariables: RTweakzDB
+
+rtweakz.lua
+rtweakz_ui.lua
