@@ -1,4 +1,4 @@
-## Interface: 120100
+## Interface: 120005, 120007, 120100
 ## Title: RTweakz
 ## Notes: FPS limiter - lowers cap outside instances, raises it inside
 ## Author: mteiting
