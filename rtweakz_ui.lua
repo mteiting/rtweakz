@@ -149,7 +149,25 @@ local function CreateSettingsPanel()
     piHighlightLabel:SetPoint("LEFT", piHighlightCheck, "RIGHT", 4, 0)
     piHighlightLabel:SetText("Highlight the requester's party/raid frame")
 
-    status:SetPoint("TOPLEFT", piHighlightCheck, "BOTTOMLEFT", -22, -12)
+    local piSoundLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    piSoundLabel:SetPoint("TOPLEFT", piHighlightCheck, "BOTTOMLEFT", 4, -10)
+    piSoundLabel:SetText("Alert sound:")
+
+    local piSoundDropdown = CreateFrame("DropdownButton", nil, panel, "WowStyle1DropdownTemplate")
+    piSoundDropdown:SetSize(160, 25)
+    piSoundDropdown:SetPoint("LEFT", piSoundLabel, "RIGHT", 12, 0)
+    piSoundDropdown:SetupMenu(function(dropdown, rootDescription)
+        for _, sound in ipairs(RTweakz.PISounds) do
+            rootDescription:CreateRadio(sound.label,
+                function() return RTweakzDB.piSound == sound.key end,
+                function()
+                    RTweakzDB.piSound = sound.key
+                    if sound.soundKit then PlaySound(sound.soundKit) end
+                end)
+        end
+    end)
+
+    status:SetPoint("TOPLEFT", piSoundLabel, "BOTTOMLEFT", -26, -14)
 
     panel:SetScript("OnShow", function()
         for _, row in ipairs(rows) do
@@ -159,6 +177,7 @@ local function CreateSettingsPanel()
         piCheck:SetChecked(RTweakzDB.piEnabled)
         piKeywordBox:SetText(RTweakzDB.piKeywords)
         piHighlightCheck:SetChecked(RTweakzDB.piHighlight)
+        piSoundDropdown:GenerateMenu()
         UpdateStatus()
     end)
 

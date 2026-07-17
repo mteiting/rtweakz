@@ -17,9 +17,9 @@ All values are configurable. A value of `0` means uncapped.
 
 ## PI request alert
 
-Optionally, RTweakz can alert you when someone asks for Power Infusion. When enabled, a whisper or party chat message containing one of the configured keywords (default: `pi`) triggers a raid-warning banner, the raid-warning sound, and a chat message. Keywords match whole words only, so `pi` won't fire on "pizza". Battle.net whispers are covered too, and your own party chat messages are ignored.
+Optionally, RTweakz can alert you when someone asks for Power Infusion. When enabled, a whisper or party chat message containing one of the configured keywords (default: `pi`) triggers a raid-warning banner, an alert sound, and a chat message. The sound is configurable (raid warning, ready check, alarm clock, map ping, whisper, or none) via a dropdown in the settings panel or `/rtweakz pisound <key>` — picking one plays a preview. Keywords match whole words only, so `pi` won't fire on "pizza". Battle.net whispers are covered too, and your own party chat messages are ignored.
 
-If the requester is in your group, their Blizzard party/raid frame is also highlighted with a pulsing overlay for 5 seconds so you can find them instantly. This can be turned off with `/rtweakz pihighlight` or in the settings panel. (Battle.net whispers and custom raid frame addons are not highlighted — only the default compact frames.)
+If the requester is in your group, their Blizzard party/raid frame is also highlighted with a pulsing overlay for 5 seconds so you can find them instantly. This can be turned off with `/rtweakz pihighlight` or in the settings panel. (Battle.net whispers and custom raid frame addons are not highlighted — only the default Blizzard frames, both standard party frames and raid-style/compact frames.)
 
 The alert is off by default — enable it with `/rtweakz pi` or the checkbox in the settings panel.
 
@@ -27,7 +27,8 @@ The alert is off by default — enable it with `/rtweakz pi` or the checkbox in 
 
 1. Download the latest `rtweakz-<version>.zip` from the [releases page](../../releases).
 2. Extract it into your AddOns folder:
-   `World of Warcraft/_retail_/Interface/AddOns/`
+   - **Windows:** `C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns\`
+   - **macOS:** `/Applications/World of Warcraft/_retail_/Interface/AddOns/`
 3. Restart the game or run `/reload`.
 
 ## Configuration
@@ -45,6 +46,7 @@ The alert is off by default — enable it with `/rtweakz pi` or the checkbox in 
 /rtweakz pi              toggle the PI request alert (whispers and party chat)
 /rtweakz pikey <words>   set PI keywords, comma-separated (no argument: show current)
 /rtweakz pihighlight     toggle unit frame highlighting on PI request
+/rtweakz pisound <key>   set the alert sound (no argument: list options)
 /rtweakz debug           toggle chat messages on cap changes
 /rtweakz status          show current settings and active cap
 /rtweakz config          open the settings panel
@@ -60,10 +62,18 @@ The addon consists of three files:
 - `rtweakz.lua` — core logic: context detection, cap application, slash commands
 - `rtweakz_ui.lua` — settings panel
 
-To test local changes, symlink the repository into your AddOns folder:
+To test local changes, symlink the repository into your AddOns folder.
+
+**Windows** (PowerShell as administrator, or with Developer Mode enabled):
+
+```powershell
+New-Item -ItemType SymbolicLink -Path "C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns\rtweakz" -Target (Get-Location)
+```
+
+**macOS / Linux:**
 
 ```sh
-ln -s "$(pwd)" "/path/to/World of Warcraft/_retail_/Interface/AddOns/rtweakz"
+ln -s "$(pwd)" "/Applications/World of Warcraft/_retail_/Interface/AddOns/rtweakz"
 ```
 
 ## Releasing

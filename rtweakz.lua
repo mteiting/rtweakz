@@ -9,6 +9,7 @@ local defaults = {
     piEnabled = false,
     piKeywords = "pi",
     piHighlight = true,
+    piSound = "raidwarning",
 }
 
 RTweakzDB = RTweakzDB or {}
@@ -122,8 +123,23 @@ local function FrameShowsUnit(unitFrame, unit)
         and UnitIsUnit(unitFrame.displayedUnit, unit)
 end
 
--- Blizzard compact frames: party, combined raid groups, and separate raid groups
+-- Default (non raid-style) party frames live in a frame pool, not global names
+local function FindPartyMemberFrame(unit)
+    if not (PartyFrame and PartyFrame.PartyMemberFramePool) then
+        return nil
+    end
+    for memberFrame in PartyFrame.PartyMemberFramePool:EnumerateActive() do
+        local memberUnit = memberFrame.unit or (memberFrame.GetUnit and memberFrame:GetUnit())
+        if memberFrame:IsVisible() and memberUnit and UnitIsUnit(memberUnit, unit) then
+            return memberFrame
+        end
+    end
+end
+
+-- Blizzard frames: default party, raid-style party, combined and separate raid groups
 local function FindUnitFrame(unit)
+    local partyFrame = FindPartyMemberFrame(unit)
+    if partyFrame then return partyFrame end
     for i = 1, 5 do
         local f = _G["CompactPartyFrameMember" .. i]
         if FrameShowsUnit(f, unit) then return f end
@@ -140,6 +156,33 @@ local function FindUnitFrame(unit)
     end
 end
 
+local piSounds = {
+    { key = "raidwarning", label = "Raid warning", soundKit = SOUNDKIT.RAID_WARNING },
+    { key = "readycheck",  label = "Ready check",  soundKit = SOUNDKIT.READY_CHECK },
+    { key = "alarm",       label = "Alarm clock",  soundKit = SOUNDKIT.ALARM_CLOCK_WARNING_3 },
+    { key = "ping",        label = "Map ping",     soundKit = SOUNDKIT.MAP_PING },
+    { key = "whisper",     label = "Whisper",      soundKit = SOUNDKIT.TELL_MESSAGE },
+    { key = "none",        label = "No sound" },
+}
+
+local function GetPISound(key)
+    for _, sound in ipairs(piSounds) do
+        if sound.key == key then
+            return sound
+        end
+    end
+end
+
+RTweakz.PISounds = piSounds
+RTweakz.GetPISound = GetPISound
+
+local function PlayPISound()
+    local sound = GetPISound(RTweakzDB.piSound)
+    if sound and sound.soundKit then
+        PlaySound(sound.soundKit)
+    end
+end
+
 local function OnPIMessage(message, sender)
     if not RTweakzDB.piEnabled or not MatchesPIKeyword(message) then
         return
@@ -149,7 +192,7 @@ local function OnPIMessage(message, sender)
     end
     local name = Ambiguate(sender, "short")
     RaidNotice_AddMessage(RaidWarningFrame, name .. " is requesting Power Infusion!", ChatTypeInfo["RAID_WARNING"])
-    PlaySound(SOUNDKIT.RAID_WARNING)
+    PlayPISound()
     print("|cff00ff00RTweakz|r: PI request from " .. name)
 
     if RTweakzDB.piHighlight then
@@ -157,6 +200,9 @@ local function OnPIMessage(message, sender)
         local unitFrame = unit and FindUnitFrame(unit)
         if unitFrame then
             HighlightUnitFrame(unitFrame)
+        elseif RTweakzDB.debug then
+            print("|cff00ff00RTweakz|r: no unit frame to highlight ("
+                .. (unit and (unit .. " has no visible default frame") or (sender .. " not found in group")) .. ")")
         end
     end
 end
@@ -220,6 +266,7 @@ SlashCmdList["RTWEAKZ"] = function(msg)
         print("  /rtweakz pi            - toggle PI request alert on whispers and party chat")
         print("  /rtweakz pikey <words> - set PI keywords, comma-separated (current: " .. RTweakzDB.piKeywords .. ")")
         print("  /rtweakz pihighlight   - toggle unit frame highlight on PI request")
+        print("  /rtweakz pisound <key> - set PI alert sound (current: " .. RTweakzDB.piSound .. ")")
         print("  /rtweakz debug         - toggle chat messages on cap changes")
         print("  /rtweakz status        - show current settings and active cap")
         print("  /rtweakz config        - open settings panel")
@@ -245,6 +292,19 @@ SlashCmdList["RTWEAKZ"] = function(msg)
     elseif cmd == "pihighlight" then
         RTweakzDB.piHighlight = not RTweakzDB.piHighlight
         print("|cff00ff00RTweakz|r: PI unit frame highlight " .. (RTweakzDB.piHighlight and "enabled" or "disabled"))
+    elseif cmd == "pisound" then
+        local sound = val ~= "" and RTweakz.GetPISound(val:lower()) or nil
+        if sound then
+            RTweakzDB.piSound = sound.key
+            if sound.soundKit then PlaySound(sound.soundKit) end
+            print("|cff00ff00RTweakz|r: PI sound set to " .. sound.label)
+        else
+            local keys = {}
+            for _, s in ipairs(RTweakz.PISounds) do
+                keys[#keys + 1] = s.key
+            end
+            print("|cff00ff00RTweakz|r: PI sound: " .. RTweakzDB.piSound .. "  (options: " .. table.concat(keys, ", ") .. ")")
+        end
     elseif cmd == "debug" then
         RTweakzDB.debug = not RTweakzDB.debug
         print("|cff00ff00RTweakz|r: debug messages " .. (RTweakzDB.debug and "enabled" or "disabled"))
@@ -259,7 +319,8 @@ SlashCmdList["RTWEAKZ"] = function(msg)
         print("|cff00ff00RTweakz|r: active=" .. FormatFPS(fps) .. " (" .. reason .. ")  maxFPS cvar=" .. GetCVar("maxFPS"))
         print("|cff00ff00RTweakz|r: PI alert=" .. (RTweakzDB.piEnabled and "on" or "off")
             .. "  keywords=" .. RTweakzDB.piKeywords
-            .. "  highlight=" .. (RTweakzDB.piHighlight and "on" or "off"))
+            .. "  highlight=" .. (RTweakzDB.piHighlight and "on" or "off")
+            .. "  sound=" .. RTweakzDB.piSound)
     else
         print("|cff00ff00RTweakz|r: unknown command — type /rtweakz for help")
     end
