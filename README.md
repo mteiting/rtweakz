@@ -15,6 +15,14 @@ RTweakz sets the `maxFPS` cvar based on your current context, checked in this pr
 
 All values are configurable. A value of `0` means uncapped.
 
+## PI request alert
+
+Optionally, RTweakz can alert you when someone asks for Power Infusion. When enabled, a whisper or party chat message containing one of the configured keywords (default: `pi`) triggers a raid-warning banner, the raid-warning sound, and a chat message. Keywords match whole words only, so `pi` won't fire on "pizza". Battle.net whispers are covered too, and your own party chat messages are ignored.
+
+If the requester is in your group, their Blizzard party/raid frame is also highlighted with a pulsing overlay for 5 seconds so you can find them instantly. This can be turned off with `/rtweakz pihighlight` or in the settings panel. (Battle.net whispers and custom raid frame addons are not highlighted — only the default compact frames.)
+
+The alert is off by default — enable it with `/rtweakz pi` or the checkbox in the settings panel.
+
 ## Installation
 
 1. Download the latest `rtweakz-<version>.zip` from the [releases page](../../releases).
@@ -34,6 +42,9 @@ All values are configurable. A value of `0` means uncapped.
 /rtweakz in <fps>        instance cap
 /rtweakz rested <fps>    rested area cap
 /rtweakz afk <fps>       AFK cap
+/rtweakz pi              toggle the PI request alert (whispers and party chat)
+/rtweakz pikey <words>   set PI keywords, comma-separated (no argument: show current)
+/rtweakz pihighlight     toggle unit frame highlighting on PI request
 /rtweakz debug           toggle chat messages on cap changes
 /rtweakz status          show current settings and active cap
 /rtweakz config          open the settings panel

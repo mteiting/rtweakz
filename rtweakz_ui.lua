@@ -107,13 +107,58 @@ local function CreateSettingsPanel()
     debugLabel:SetPoint("LEFT", debugCheck, "RIGHT", 4, 0)
     debugLabel:SetText("Debug: print cap changes to chat")
 
-    status:SetPoint("TOPLEFT", debugCheck, "BOTTOMLEFT", 4, -12)
+    local piCheck = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
+    piCheck:SetSize(26, 26)
+    piCheck:SetPoint("TOPLEFT", debugCheck, "BOTTOMLEFT", 0, -4)
+    piCheck:SetScript("OnClick", function(self)
+        RTweakzDB.piEnabled = self:GetChecked() and true or false
+    end)
+
+    local piLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    piLabel:SetPoint("LEFT", piCheck, "RIGHT", 4, 0)
+    piLabel:SetText("PI request alert: warn when a whisper contains a keyword")
+
+    local piKeywordLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    piKeywordLabel:SetPoint("TOPLEFT", piCheck, "BOTTOMLEFT", 30, -8)
+    piKeywordLabel:SetText("Keywords (comma-separated):")
+
+    local piKeywordBox = CreateFrame("EditBox", nil, panel, "InputBoxTemplate")
+    piKeywordBox:SetSize(180, 20)
+    piKeywordBox:SetPoint("LEFT", piKeywordLabel, "RIGHT", 12, 0)
+    piKeywordBox:SetAutoFocus(false)
+
+    local function CommitPIKeywords()
+        local text = piKeywordBox:GetText():match("^%s*(.-)%s*$")
+        if text ~= "" then
+            RTweakzDB.piKeywords = text
+        end
+        piKeywordBox:SetText(RTweakzDB.piKeywords)
+        piKeywordBox:ClearFocus()
+    end
+    piKeywordBox:SetScript("OnEnterPressed", CommitPIKeywords)
+    piKeywordBox:SetScript("OnEditFocusLost", CommitPIKeywords)
+
+    local piHighlightCheck = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
+    piHighlightCheck:SetSize(26, 26)
+    piHighlightCheck:SetPoint("TOPLEFT", piKeywordLabel, "BOTTOMLEFT", -4, -8)
+    piHighlightCheck:SetScript("OnClick", function(self)
+        RTweakzDB.piHighlight = self:GetChecked() and true or false
+    end)
+
+    local piHighlightLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    piHighlightLabel:SetPoint("LEFT", piHighlightCheck, "RIGHT", 4, 0)
+    piHighlightLabel:SetText("Highlight the requester's party/raid frame")
+
+    status:SetPoint("TOPLEFT", piHighlightCheck, "BOTTOMLEFT", -22, -12)
 
     panel:SetScript("OnShow", function()
         for _, row in ipairs(rows) do
             row.Refresh()
         end
         debugCheck:SetChecked(RTweakzDB.debug)
+        piCheck:SetChecked(RTweakzDB.piEnabled)
+        piKeywordBox:SetText(RTweakzDB.piKeywords)
+        piHighlightCheck:SetChecked(RTweakzDB.piHighlight)
         UpdateStatus()
     end)
 
