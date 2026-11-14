@@ -29,6 +29,7 @@ The alert is off by default — enable it with `/rtweakz pi` or the checkbox in 
 2. Extract it into your AddOns folder:
    - **Windows:** `C:\Program Files (x86)\World of Warcraft\_retail_\Interface\AddOns\`
    - **macOS:** `/Applications/World of Warcraft/_retail_/Interface/AddOns/`
+   - **WoW Forever:** use the `_forever_` folder instead of `_retail_`
 3. Restart the game or run `/reload`.
 
 ## Configuration

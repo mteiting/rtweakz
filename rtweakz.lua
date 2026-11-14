@@ -123,9 +123,17 @@ local function FrameShowsUnit(unitFrame, unit)
         and UnitIsUnit(unitFrame.displayedUnit, unit)
 end
 
--- Default (non raid-style) party frames live in a frame pool, not global names
+-- Default (non raid-style) party frames: retail keeps them in a frame pool,
+-- Classic-based clients (Era, WoW Forever) use global PartyMemberFrame1-4
 local function FindPartyMemberFrame(unit)
     if not (PartyFrame and PartyFrame.PartyMemberFramePool) then
+        for i = 1, 4 do
+            local memberFrame = _G["PartyMemberFrame" .. i]
+            local memberUnit = memberFrame and (memberFrame.unit or ("party" .. i))
+            if memberFrame and memberFrame:IsVisible() and UnitIsUnit(memberUnit, unit) then
+                return memberFrame
+            end
+        end
         return nil
     end
     for memberFrame in PartyFrame.PartyMemberFramePool:EnumerateActive() do
@@ -164,6 +172,13 @@ local piSounds = {
     { key = "whisper",     label = "Whisper",      soundKit = SOUNDKIT.TELL_MESSAGE },
     { key = "none",        label = "No sound" },
 }
+
+-- Drop sounds this client doesn't define (SOUNDKIT differs between retail and Classic clients)
+for i = #piSounds, 1, -1 do
+    if piSounds[i].key ~= "none" and not piSounds[i].soundKit then
+        table.remove(piSounds, i)
+    end
+end
 
 local function GetPISound(key)
     for _, sound in ipairs(piSounds) do
