@@ -167,9 +167,39 @@ local function CreateSettingsPanel()
         end
     end)
 
-    status:SetPoint("TOPLEFT", piSoundLabel, "BOTTOMLEFT", -26, -14)
+    local function CreateCheck(anchor, x, y, labelText, dbKey, onToggle)
+        local check = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
+        check:SetSize(26, 26)
+        check:SetPoint("TOPLEFT", anchor, "BOTTOMLEFT", x, y)
+        check:SetScript("OnClick", function(self)
+            RTweakzDB[dbKey] = self:GetChecked() and true or false
+            if onToggle then onToggle() end
+        end)
+        local label = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        label:SetPoint("LEFT", check, "RIGHT", 4, 0)
+        label:SetText(labelText)
+        check.dbKey = dbKey
+        return check
+    end
+
+    local piReadyCheck = CreateCheck(piSoundLabel, -4, -10,
+        "Ignore requests while Power Infusion is on cooldown", "piOnlyReady")
+    local piMacroCheck = CreateCheck(piReadyCheck, 0, -4,
+        "Keep macro RTweakzPI targeting the last requester", "piMacro", RTweakz.EnsurePIMacro)
+
+    local logRaidCheck = CreateCheck(piMacroCheck, -26, -16,
+        "Combat log: start automatically in raids", "logRaid", RTweakz.UpdateCombatLog)
+    local logDungeonCheck = CreateCheck(logRaidCheck, 0, -4,
+        "Combat log: start automatically in dungeons", "logDungeon", RTweakz.UpdateCombatLog)
+
+    local checks = { piReadyCheck, piMacroCheck, logRaidCheck, logDungeonCheck }
+
+    status:SetPoint("TOPLEFT", logDungeonCheck, "BOTTOMLEFT", 4, -14)
 
     panel:SetScript("OnShow", function()
+        for _, check in ipairs(checks) do
+            check:SetChecked(RTweakzDB[check.dbKey])
+        end
         for _, row in ipairs(rows) do
             row.Refresh()
         end
